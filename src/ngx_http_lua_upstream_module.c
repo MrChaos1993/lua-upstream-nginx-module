@@ -286,13 +286,13 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
         i++;
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
-    for (peer = peers->resolve; peer; peer = peer->next) {
-        ngx_http_lua_get_peer(L, peer, i);
-        lua_rawseti(L, -2, i + 1);
-        i++;
-    }
-#endif
+// #if (NGX_HTTP_UPSTREAM_ZONE)
+//     for (peer = peers->resolve; peer; peer = peer->next) {
+//         ngx_http_lua_get_peer(L, peer, i);
+//         lua_rawseti(L, -2, i + 1);
+//         i++;
+//     }
+// #endif
 
     return 1;
 }
@@ -344,13 +344,13 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
         i++;
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
-    for (peer = peers->resolve; peer; peer = peer->next) {
-        ngx_http_lua_get_peer(L, peer, i);
-        lua_rawseti(L, -2, i + 1);
-        i++;
-    }
-#endif
+// #if (NGX_HTTP_UPSTREAM_ZONE)
+//     for (peer = peers->resolve; peer; peer = peer->next) {
+//         ngx_http_lua_get_peer(L, peer, i);
+//         lua_rawseti(L, -2, i + 1);
+//         i++;
+//     }
+// #endif
 
     return 1;
 }
@@ -431,15 +431,15 @@ ngx_http_lua_upstream_lookup_peer(lua_State *L)
         i++;
     }
 
-#if (NGX_HTTP_UPSTREAM_ZONE)
-    for (peer = peers->resolve; peer; peer = peer->next) {
-        if ((int) i == id) {
-            return peer;
-        }
+// #if (NGX_HTTP_UPSTREAM_ZONE)
+//     for (peer = peers->resolve; peer; peer = peer->next) {
+//         if ((int) i == id) {
+//             return peer;
+//         }
 
-        i++;
-    }
-#endif
+//         i++;
+//     }
+// #endif
 
     lua_pushnil(L);
     lua_pushliteral(L, "bad peer id");
