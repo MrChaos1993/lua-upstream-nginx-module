@@ -28,7 +28,7 @@ static ngx_http_upstream_main_conf_t *
 static int ngx_http_lua_upstream_get_primary_peers(lua_State * L);
 static int ngx_http_lua_upstream_get_backup_peers(lua_State * L);
 static int ngx_http_lua_get_peer(lua_State *L,
-    ngx_http_upstream_rr_peer_t *peer, ngx_uint_t id);
+    ngx_http_upstream_rr_peer_t *peer, ngx_uint_t id, ngx_flag_t tmp);
 static ngx_http_upstream_srv_conf_t *
     ngx_http_lua_upstream_find_upstream(lua_State *L, ngx_str_t *host);
 static ngx_http_upstream_rr_peer_t *
@@ -281,18 +281,18 @@ ngx_http_lua_upstream_get_primary_peers(lua_State * L)
     i = 0;
 
     for (peer = peers->peer; peer; peer = peer->next) {
-        ngx_http_lua_get_peer(L, peer, i);
+        ngx_http_lua_get_peer(L, peer, i, 0);
         lua_rawseti(L, -2, i + 1);
         i++;
     }
 
-// #if (NGX_HTTP_UPSTREAM_ZONE)
-//     for (peer = peers->resolve; peer; peer = peer->next) {
-//         ngx_http_lua_get_peer(L, peer, i);
-//         lua_rawseti(L, -2, i + 1);
-//         i++;
-//     }
-// #endif
+#if (NGX_HTTP_UPSTREAM_ZONE)
+    for (peer = peers->resolve; peer; peer = peer->next) {
+        ngx_http_lua_get_peer(L, peer, i, 1);
+        lua_rawseti(L, -2, i + 1);
+        i++;
+    }
+#endif
 
     return 1;
 }
@@ -339,18 +339,18 @@ ngx_http_lua_upstream_get_backup_peers(lua_State * L)
     i = 0;
 
     for (peer = peers->peer; peer; peer = peer->next) {
-        ngx_http_lua_get_peer(L, peer, i);
+        ngx_http_lua_get_peer(L, peer, i, 0);
         lua_rawseti(L, -2, i + 1);
         i++;
     }
 
-// #if (NGX_HTTP_UPSTREAM_ZONE)
-//     for (peer = peers->resolve; peer; peer = peer->next) {
-//         ngx_http_lua_get_peer(L, peer, i);
-//         lua_rawseti(L, -2, i + 1);
-//         i++;
-//     }
-// #endif
+#if (NGX_HTTP_UPSTREAM_ZONE)
+    for (peer = peers->resolve; peer; peer = peer->next) {
+        ngx_http_lua_get_peer(L, peer, i, 1);
+        lua_rawseti(L, -2, i + 1);
+        i++;
+    }
+#endif
 
     return 1;
 }
@@ -431,15 +431,15 @@ ngx_http_lua_upstream_lookup_peer(lua_State *L)
         i++;
     }
 
-// #if (NGX_HTTP_UPSTREAM_ZONE)
-//     for (peer = peers->resolve; peer; peer = peer->next) {
-//         if ((int) i == id) {
-//             return peer;
-//         }
+#if (NGX_HTTP_UPSTREAM_ZONE)
+    for (peer = peers->resolve; peer; peer = peer->next) {
+        if ((int) i == id) {
+            return peer;
+        }
 
-//         i++;
-//     }
-// #endif
+        i++;
+    }
+#endif
 
     lua_pushnil(L);
     lua_pushliteral(L, "bad peer id");
@@ -449,7 +449,7 @@ ngx_http_lua_upstream_lookup_peer(lua_State *L)
 
 static int
 ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
-    ngx_uint_t id)
+    ngx_uint_t id, ngx_flag_t tmp)
 {
     ngx_uint_t     n;
 
@@ -477,8 +477,15 @@ ngx_http_lua_get_peer(lua_State *L, ngx_http_upstream_rr_peer_t *peer,
     lua_pushinteger(L, (lua_Integer) id);
     lua_rawset(L, -3);
 
+    if (tmp) {
+        lua_pushliteral(L, "comes_from_resolve");
+        lua_pushboolean(L, 1);
+        lua_rawset(L, -3);
+    }
+
     lua_pushliteral(L, "name");
     lua_pushlstring(L, (char *) peer->name.data, peer->name.len);
+    
     lua_rawset(L, -3);
 
     lua_pushliteral(L, "weight");
