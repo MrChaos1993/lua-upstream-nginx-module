@@ -25,6 +25,7 @@ addons:
     - libwww-perl
     - libtest-longstring-perl
     - liblist-moreutils-perl
+    - libnet-dns-perl
 
 compiler:
   - gcc
